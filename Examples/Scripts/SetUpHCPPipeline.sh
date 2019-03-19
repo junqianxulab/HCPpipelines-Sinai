@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-echo "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
+# echo "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
 
 # Set up FSL (if not already done so in the running environment)
 # Uncomment the following 2 lines (remove the leading #) and correct the FSLDIR setting for your setup
@@ -17,17 +17,15 @@ export FSL_DIR="${FSLDIR}"
 #source ${FREESURFER_HOME}/SetUpFreeSurfer.sh > /dev/null 2>&1
 
 # Set up specific environment variables for the HCP Pipeline
-export HCPPIPEDIR=/media/myelin/brainmappers/Connectome_Project/Pipelines
-export CARET7DIR=/home/brainmappers/workbench
-export MSMBINDIR=${HOME}/pipeline_tools/MSM-2015.01.14
+export HCPPIPEDIR=/sc/orga/projects/adolpvs/PreProcPipeline/Scripts/HCPpipelines-3.27.0-Sinai
+export CARET7DIR=/sc/orga/projects/adolpvs/PreProcPipeline/Scripts/workbench-1.3.2/bin_rh_linux64
+export MSMBINDIR=/sc/orga/projects/adolpvs/PreProcPipeline/Scripts/MSM_HOCR_v2/Centos
 export MSMCONFIGDIR=${HCPPIPEDIR}/MSMConfig
-export MATLAB_COMPILER_RUNTIME=/media/myelin/brainmappers/HardDrives/1TB/MATLAB_Runtime/v901
-export FSL_FIXDIR=/media/myelin/aahana/fix1.06
-
+export MATLAB_COMPILER_RUNTIME=/sc/orga/projects/adolpvs/PreProcPipeline/Scripts/fix1.067/mcr/v91
+export FSL_FIXDIR=/sc/orga/projects/adolpvs/PreProcPipeline/Scripts/fix1.067
 export HCPPIPEDIR_Templates=${HCPPIPEDIR}/global/templates
 export HCPPIPEDIR_Bin=${HCPPIPEDIR}/global/binaries
 export HCPPIPEDIR_Config=${HCPPIPEDIR}/global/config
-
 export HCPPIPEDIR_PreFS=${HCPPIPEDIR}/PreFreeSurfer/scripts
 export HCPPIPEDIR_FS=${HCPPIPEDIR}/FreeSurfer/scripts
 export HCPPIPEDIR_PostFS=${HCPPIPEDIR}/PostFreeSurfer/scripts
@@ -38,6 +36,8 @@ export HCPPIPEDIR_dMRI=${HCPPIPEDIR}/DiffusionPreprocessing/scripts
 export HCPPIPEDIR_dMRITract=${HCPPIPEDIR}/DiffusionTractography/scripts
 export HCPPIPEDIR_Global=${HCPPIPEDIR}/global/scripts
 export HCPPIPEDIR_tfMRIAnalysis=${HCPPIPEDIR}/TaskfMRIAnalysis/scripts
+
+export PATH=$CARET7DIR:$PATH
 
 #try to reduce strangeness from locale and other environment settings
 export LC_ALL=C
