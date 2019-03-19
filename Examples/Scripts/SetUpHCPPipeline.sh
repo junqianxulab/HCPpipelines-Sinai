@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-echo "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
+# echo "This script must be SOURCED to correctly setup the environment prior to running any of the other HCP scripts contained here"
 
 # Set up FSL (if not already done so in the running environment)
 # Uncomment the following 2 lines (remove the leading #) and correct the FSLDIR setting for your setup
