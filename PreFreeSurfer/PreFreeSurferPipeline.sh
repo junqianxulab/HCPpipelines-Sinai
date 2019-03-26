@@ -519,6 +519,16 @@ done
 # End of looping over modalities (T1w and T2w)
 
 # ------------------------------------------------------------------------------
+#  Combine T1w and T2w Brain Masks
+#  customization due to poor T1w-only skullstrip performance on Sinai data
+#  (note that this is performed before T1w/T2w coregistration so important to QC,
+#   may work poorly if subject moved between anatomical scans)
+# ------------------------------------------------------------------------------
+
+log_Msg "Combining T1w and T2w brain masks (Sinai customization)"
+${RUN} ${HCPPIPEDIR_PreFS}/combine_T1w_T2w_skullstrips.sh "${StudyFolder}/${Subject}"
+
+# ------------------------------------------------------------------------------
 #  T2w to T1w Registration and Optional Readout Distortion Correction 
 # ------------------------------------------------------------------------------
 
