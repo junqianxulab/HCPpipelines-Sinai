@@ -7,24 +7,24 @@
 
 # software version check:
 HCPver=$(cat $HCPPIPEDIR/version.txt)
-echo "HCP Pipeline Version: $HCPver"
+echo "`date` - HCP Pipeline Version: $HCPver"
 if [[ "$HCPver" != "v3.27.0-Sinai" ]] ; then
-        echo "ERROR: HCP Pipeline version must = v3.27.0-Sinai"
+        echo "`date` - ERROR: HCP Pipeline version must = v3.27.0-Sinai"
         echo "HCP Pipeline directory: $(echo $HCPPIPEDIR)"      
-        exit 37
+        exit 42
 fi
 WBver=$(wb_command -help | grep Version)
-echo "Connectome Workbench $WBver"
+echo "`date` - Connectome Workbench $WBver"
 if [[ "$WBver" != "Version: 1.3.2" ]] ; then
-        echo "ERROR: Connectome Workbench version must = 1.3.2"
+        echo "`date` - ERROR: Connectome Workbench version must = 1.3.2"
         echo "Connectome Workbench directory: $(echo $CARET7DIR)"      
-        exit 38
+        exit 43
 fi
 FSLver=$(cat $FSLDIR/etc/fslversion)
-echo "FSL Version: $FSLver"
+echo "`date` - FSL Version: $FSLver"
 if [ "$FSLver" != "5.0.11" ] ; then
-        echo "ERROR: FSL version must = 5.0.11"
-        exit 39
+        echo "`date` - ERROR: FSL version must = 5.0.11"
+        exit 44
 fi
 
 if [ $# -eq 0 ] ; then 
@@ -53,13 +53,16 @@ else
 	ID=`getopt1 "--ID" $@`
 fi
 
-#home="/sc/orga/projects/adolpvs/Subjects"
-home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
-echo -e "\n\nWARNING: subject directory currently set to /sc/orga/projects/xuj09a/gabbay_storage/Subjects/test\n\n"
+home="/sc/orga/projects/adolpvs/Subjects"
+#home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
+echo -e "`date` - home directory: $home"
 cd ${home}/${ID}
+if [ "$?" != "0" ] ; then
+	echo -e "\n\n`date` - ERROR: subject directory not found at ${home}/${ID}"
+	exit 45
+fi
 
-echo -e "\n\nRunning PostFreeSurfer pipeline.\n\n"
-cd ${home}/${ID}
+echo -e "\n\n`date` - Running PostFreeSurfer pipeline.\n\n"
 ${HCPPIPEDIR}/PostFreeSurfer/PostFreeSurferPipeline.sh \
 	--path=${home} \
 	--subject=${ID} \
@@ -74,9 +77,9 @@ ${HCPPIPEDIR}/PostFreeSurfer/PostFreeSurferPipeline.sh \
 	--refmyelinmaps=${HCPPIPEDIR_Templates}/standard_mesh_atlases/Conte69.MyelinMap_BC.164k_fs_LR.dscalar.nii
 
 if [ "$?" = "0" ] ; then
-	echo -e "\n\nAll done! Check the main output files in the subject directory, yo:"
+	echo -e "\n\n`date` - All done! Check the main output files in the subject directory, yo:"
 	echo -e "     wb_view $home/$ID/MNINonLinear/fsaverage_LR32k/${ID}.*Distortion_*.32k_fs_LR.dscalar.nii $home/$ID/MNINonLinear/fsaverage_LR32k/${ID}.32k_fs_LR.wb.spec"
 else
-	echo -e "\n\nERROR: PostFreeSurfer pipeline did not complete normally; check files and re-run."
-	exit 44
+	echo -e "\n\n`date` - ERROR: PostFreeSurfer pipeline did not complete normally; check files and re-run."
+	exit 46
 fi
