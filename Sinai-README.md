@@ -16,6 +16,11 @@ source Examples/Scripts/SetUpMinervaModules.sh
 Examples/Scripts/vg_Anatomical_Preprocessing_postFS_MSMSulc_3.27.0-Sinai.sh
 ```
 
+### Run fMRISurface (including MSMSulc) using local wrapper script:
+```
+Examples/Scripts/vg_BOLD_Preprocessing_fMRISurface_MSMSulc_3.27.0-Sinai.sh
+```
+
 ### Log HCP Pipeline environmental variables
 ```
 Examples/Scripts/env_report.sh
