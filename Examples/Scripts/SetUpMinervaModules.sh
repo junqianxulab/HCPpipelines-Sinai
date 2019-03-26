@@ -10,6 +10,6 @@ export PATH="/hpc/packages/minerva-common/gradunwarp/1.0.2/bin:$PATH"
 
 module load freesurfer/5.3.0 > /dev/null 2>&1
 . ${SETUP_FREESURFER_SH} > /dev/null 2>&1
-# needs libnetcdf.so.6 in the library path or FreeSurfer pipeline will crash
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib64"
+# needs libnetcdf.so.6 in the library path or FreeSurfer pipeline will crash 
+export LD_LIBRARY_PATH="/usr/lib64:$LD_LIBRARY_PATH"
 
