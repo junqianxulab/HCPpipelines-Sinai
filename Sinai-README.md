@@ -1,9 +1,10 @@
 
-### Use this for:
+### Use these scripts for:
 * PostFreeSurfer
 * fMRISurface
 * ICAFIX
-* ...
+* change manual reclassified ICA components to HCP recognized format
+* reapply ICA manual reclassification
 
 ### Source two setup files
 ```
@@ -25,3 +26,14 @@ Examples/Scripts/vg_BOLD_Preprocessing_fMRISurface_MSMSulc_3.27.0-Sinai.sh
 ```
 Examples/Scripts/env_report.sh
 ```
+
+### Prepare data of manual reclassifed ICA components
+```
+Examples/Scripts/vg_PrepareData_applyManualReclassification.sh
+```
+
+### Run Reapply manual reclassification for multi-run ICA fix  
+```
+Examples/Scripts/vg_ReApplyFixMultiRunPipeline.sh
+```
+
