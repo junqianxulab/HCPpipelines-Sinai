@@ -2,7 +2,9 @@
 ### Use these scripts for:
 * PostFreeSurfer
 * fMRISurface
-* ICAFIX
+* multirun ICAFIX
+    * [debug] concatenate files only
+    * [debug] skip to FIX
 * change manual reclassified ICA components to HCP recognized format
 * reapply ICA manual reclassification
 * MSMAll
@@ -51,8 +53,14 @@ Examples/Scripts/vg_MSMAllPipelineBatch_fMRI_merged.sh
 Examples/Scripts/vg_DeDriftAndResamplePipelineBatch.sh
 ```
 
-## LSF file templates for submitting jobs in minerva
+### LSF file templates for submitting jobs in minerva
 ```
 Examples/lsf_templates
+```
+
+### debug files for multirun ICA fix 
+```
+ICAFIX/hcp_fix_multi_run_concatenate_files_only
+ICAFIX/hcp_fix_multi_run_skip_to_FIX
 ```
 
