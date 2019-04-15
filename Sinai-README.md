@@ -5,6 +5,10 @@
 * ICAFIX
 * change manual reclassified ICA components to HCP recognized format
 * reapply ICA manual reclassification
+* MSMAll
+* DeDrift and resample
+
+
 
 ### Source two setup files
 ```
@@ -37,3 +41,12 @@ Examples/Scripts/vg_PrepareData_applyManualReclassification.sh
 Examples/Scripts/vg_ReApplyFixMultiRunPipeline.sh
 ```
 
+### Run MSMAll 
+```
+Examples/Scripts/vg_MSMAllPipelineBatch_fMRI_merged.sh
+```
+
+### Run DeDrift and Resample
+```
+Examples/Scripts/vg_DeDriftAndResamplePipelineBatch.sh
+```
