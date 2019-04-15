@@ -1,4 +1,4 @@
-#
+#!/bin/bash
 
 module load fsl/5.0.6
 . ${FSLDIR}/etc/fslconf/fsl.sh
