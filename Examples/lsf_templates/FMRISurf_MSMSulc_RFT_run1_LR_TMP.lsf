@@ -1,0 +1,35 @@
+#!/bin/sh
+#BSUB -J fMRISurf_VAR_SUBrft1
+#BSUB -P acc_adolpvs
+#BSUB -q premium
+#BSUB -n 1
+#BSUB -R "rusage[mem=16000]"
+#BSUB -R "span[hosts=1]"
+#BSUB -W 2:00
+#BSUB -o /sc/orga/projects/adolpvs/PreProcPipeline/logs/FMRISurf_MSMSulc_3.27.0-Sinai/FMRISurf_MSMSulc_RFT_run1_LR_VAR_SUB.log
+
+home="/sc/orga/projects/adolpvs/PreProcPipeline"
+scripts="$home/Scripts/HCPpipelines-3.27.0-Sinai/Examples/Scripts"
+
+# housekeeping so most recent log is obvious
+logfile="$home/logs/FMRISurf_MSMSulc_3.27.0-Sinai/FMRISurf_MSMSulc_RFT_run1_LR_VAR_SUB.log"
+if [[ -e "$logfile" ]] ; then
+	mkdir -p $home/logs/FMRISurf_MSMSulc_3.27.0-Sinai/loghist
+	cat $logfile >> $home/logs/FMRISurf_MSMSulc_3.27.0-Sinai/loghist/FMRISurf_MSMSulc_RFT_run1_LR_VAR_SUB.loghist
+	rm $logfile
+fi
+
+# set up and log environment
+module purge
+. $scripts/SetUpGlobalDefaults.sh
+. $scripts/SetUpMinervaModules.sh
+. $scripts/SetUpHCPPipeline.sh
+sh $scripts/env_report.sh 2>&1
+
+# run fMRISurf
+#   mandatory flags:
+#     --ID=[subject ID]
+#     --Name=[name of run, e.g. RFT_run1_LR]
+#   optional flags:
+#     --Test=yes # use for development, changes home directory to /sc/orga/projects/xuj09a/gabbay_storage/Subjects/test
+sh $scripts/vg_BOLD_Preprocessing_fMRISurface_MSMSulc_3.27.0-Sinai.sh --ID=VAR_SUB --Name=RFT_run1_LR 2>&1

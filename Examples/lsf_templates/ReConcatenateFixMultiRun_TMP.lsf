@@ -1,0 +1,40 @@
+#!/bin/bash
+#BSUB -J ReConc_VAR_SUB
+#BSUB -P acc_adolpvs
+#BSUB -q premium
+#BSUB -n 1
+#BSUB -R "rusage[mem=32000]"
+#BSUB -R "span[hosts=1]"
+#BSUB -W 6:00
+#BSUB -o /sc/orga/projects/adolpvs/PreProcPipeline/logs/ReConcatenateFixMultiRun_3.27.0-Sinai/ReConcatenateFixMultiRun_VAR_SUB.log
+#BSUB -L /bin/bash
+
+home="/sc/orga/projects/adolpvs/PreProcPipeline/"
+scripts="$home/Scripts/HCPpipelines-3.27.0-Sinai/Examples/Scripts"
+hcpfix="$home/Scripts/HCPpipelines-3.27.0-Sinai/ICAFIX/"
+
+# housekeeping so most recent log is obvious
+logfile="$home/logs/ReConcatenateFixMultiRun_3.27.0-Sinai/ReConcatenateFixMultiRun_VAR_SUB.log"
+if [[ -e "$logfile" ]] ; then
+        mkdir -p $home/logs/ReConcatenateFixMultiRun_3.27.0-Sinai/loghist
+        cat $logfile >> $home/logs/ReConcatenateFixMultiRun_3.27.0-Sinai/loghist/ReConcatenateFixMultiRun_VAR_SUB.loghist
+        rm $logfile
+fi
+
+
+# set up environment
+module purge
+. $scripts/SetUpMinervaModules.sh
+. $scripts/SetUpHCPPipeline.sh
+. $home/Scripts/fix1.067/settings.sh
+
+
+# run ReConcatenateFixMultiRun
+sh $scripts/env_report.sh 2>&1
+
+cd /sc/orga/projects/adolpvs/Subjects/VAR_SUB/MNINonLinear/Results/
+
+sh $hcpfix/hcp_fix_multi_run_concatenate_files_only `cat lst_icafix_multirun` 2000 fMRI_merged/fMRI_merged FALSE 2>&1
+
+
+

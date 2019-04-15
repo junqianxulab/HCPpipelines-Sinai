@@ -1,0 +1,37 @@
+#!/bin/bash
+#BSUB -J ReApp_VAR_SUB
+#BSUB -P acc_adolpvs
+#BSUB -q premium
+#BSUB -n 1
+#BSUB -R "rusage[mem=32000]"
+#BSUB -R "span[hosts=1]"
+#BSUB -W 04:00
+#BSUB -o /sc/orga/projects/adolpvs/PreProcPipeline/logs/ReApplyFixMultiRun_3.27.0-Sinai/ReApplyFixMultiRun_VAR_SUB.log
+#BSUB -L /bin/bash
+
+home="/sc/orga/projects/adolpvs/PreProcPipeline/"
+scripts="$home/Scripts/HCPpipelines-3.27.0-Sinai/Examples/Scripts"
+
+# housekeeping so most recent log is obvious
+logfile="$home/logs/ReApplyFixMultiRun_3.27.0-Sinai/ReApplyFixMultiRun_VAR_SUB.log"
+if [[ -e "$logfile" ]] ; then
+        mkdir -p $home/logs/ReApplyFixMultiRun_3.27.0-Sinai/loghist
+        cat $logfile >> $home/logs/ReApplyFixMultiRun_3.27.0-Sinai/loghist/ReApplyFixMultiRun_VAR_SUB.loghist
+        rm $logfile
+fi
+
+
+
+# set up environment
+module purge
+. $scripts/SetUpMinervaModules.sh
+. $scripts/SetUpHCPPipeline.sh
+. $home/Scripts/fix1.067/settings.sh
+
+
+# run ReApplyFixMultiRun
+sh $scripts/env_report.sh 2>&1
+sh $scripts/vg_ReApplyFixMultiRunPipeline.sh --Subjlist=VAR_SUB 2>&1
+
+
+

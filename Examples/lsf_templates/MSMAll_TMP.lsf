@@ -1,0 +1,42 @@
+#!/bin/bash
+#BSUB -J MSMAll_VAR_SUB
+#BSUB -P acc_adolpvs
+#BSUB -q premium
+#BSUB -n 1
+#BSUB -R "rusage[mem=32000]"
+#BSUB -R "span[hosts=1]"
+#BSUB -W 36:00
+#BSUB -o /sc/orga/projects/adolpvs/PreProcPipeline/logs/MSMAll_3.27.0-Sinai/MSMAll_VAR_SUB.log
+
+home="/sc/orga/projects/adolpvs/PreProcPipeline/"
+scripts="$home/Scripts/HCPpipelines-3.27.0-Sinai/Examples/Scripts"
+
+# housekeeping so most recent log is obvious
+logfile="$home/logs/MSMAll_3.27.0-Sinai/MSMAll_VAR_SUB.log"
+if [[ -e "$logfile" ]] ; then
+        mkdir -p $home/logs/MSMAll_3.27.0-Sinai/loghist
+        cat $logfile >> $home/logs/MSMAll_3.27.0-Sinai/loghist/MSMAll_VAR_SUB.loghist
+        rm $logfile
+
+	## save previous matlab logs
+	mkdir -p $home/logs/MSMAll_3.27.0-Sinai/matlab_logs/matlab_loghist
+	for file in /sc/orga/projects/adolpvs/Subjects/VAR_SUB.*matlab.*log $home/logs/MSMAll_3.27.0-Sinai/matlab_logs/VAR_SUB.*matlab.*log ; do
+		filename=`basename $file`
+		date >> $home/logs/MSMAll_3.27.0-Sinai/matlab_logs/matlab_loghist/${filename}hist
+		cat $file >> $home/logs/MSMAll_3.27.0-Sinai/matlab_logs/matlab_loghist/${filename}hist
+		echo "" >> $home/logs/MSMAll_3.27.0-Sinai/matlab_logs/matlab_loghist/${filename}hist
+		rm $file
+	done 
+fi
+
+# set up environment
+module purge
+. $scripts/SetUpMinervaModules.sh
+. $scripts/SetUpHCPPipeline.sh
+
+# run MSMAll
+sh $scripts/env_report.sh 2>&1
+sh $scripts/vg_MSMAllPipelineBatch_fMRI_merged.sh --Subjlist=VAR_SUB --runlocal 2>&1
+
+# move matlab logs to log directory (saved to /sc/orga/projects/adolpvs/Subjects/ otherwise)
+mv /sc/orga/projects/adolpvs/Subjects/VAR_SUB.*matlab.*log $home/logs/MSMAll_3.27.0-Sinai/matlab_logs/

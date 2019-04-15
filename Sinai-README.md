@@ -50,3 +50,9 @@ Examples/Scripts/vg_MSMAllPipelineBatch_fMRI_merged.sh
 ```
 Examples/Scripts/vg_DeDriftAndResamplePipelineBatch.sh
 ```
+
+## LSF file templates for submitting jobs in minerva
+```
+Examples/lsf_templates
+```
+

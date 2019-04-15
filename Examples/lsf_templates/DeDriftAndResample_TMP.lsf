@@ -1,0 +1,34 @@
+#!/bin/bash
+#BSUB -J DeDriftAndResample_VAR_SUB
+#BSUB -P acc_adolpvs
+#BSUB -q premium
+#BSUB -n 1
+#BSUB -R "rusage[mem=32000]"
+#BSUB -R "span[hosts=1]"
+#BSUB -W 6:00
+#BSUB -o /sc/orga/projects/adolpvs/PreProcPipeline/logs/DeDriftAndResample_3.27.0-Sinai/DeDriftAndResample_VAR_SUB.log
+#BSUB -L /bin/bash
+
+home="/sc/orga/projects/adolpvs/PreProcPipeline/"
+scripts="$home/Scripts/HCPpipelines-3.27.0-Sinai/Examples/Scripts"
+
+# housekeeping so most recent log is obvious
+logfile="$home/logs/DeDriftAndResample_3.27.0-Sinai/DeDriftAndResample_VAR_SUB.log"
+if [[ -e "$logfile" ]] ; then
+        mkdir -p $home/logs/DeDriftAndResample_3.27.0-Sinai/loghist
+        cat $logfile >> $home/logs/DeDriftAndResample_3.27.0-Sinai/loghist/DeDriftAndResample_VAR_SUB.loghist
+        rm $logfile
+fi
+
+# set up environment
+module purge
+. $scripts/SetUpMinervaModules.sh
+. $scripts/SetUpHCPPipeline.sh
+
+
+# run DeDriftAndResample
+sh $scripts/env_report.sh 2>&1
+sh $scripts/vg_DeDriftAndResamplePipelineBatch.sh  --Subjlist=VAR_SUB 2>&1
+
+
+
