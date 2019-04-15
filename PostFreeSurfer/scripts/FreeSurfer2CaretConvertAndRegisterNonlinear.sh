@@ -113,6 +113,9 @@ log_Msg "RegName: ${RegName}"
 InflateExtraScale="${23}"
 log_Msg "InflateExtraScale: ${InflateExtraScale}"
 
+MaskStyle="${24}"
+log_Msg "MaskStyle: ${MaskStyle}"
+
 LowResMeshes=${LowResMeshes//@/ }
 log_Msg "LowResMeshes: ${LowResMeshes}"
 
@@ -170,6 +173,16 @@ ${CARET7DIR}/wb_command -volume-fill-holes "$T1wFolder"/"$T1wImageBrainMask"_1mm
 fslmaths "$T1wFolder"/"$T1wImageBrainMask"_1mm.nii.gz -bin "$T1wFolder"/"$T1wImageBrainMask"_1mm.nii.gz
 applywarp --rel --interp=nn -i "$T1wFolder"/"$T1wImageBrainMask"_1mm.nii.gz -r "$AtlasSpaceFolder"/"$AtlasSpaceT1wImage" --premat=$FSLDIR/etc/flirtsch/ident.mat -o "$T1wFolder"/"$T1wImageBrainMask".nii.gz
 applywarp --rel --interp=nn -i "$T1wFolder"/"$T1wImageBrainMask"_1mm.nii.gz -r "$AtlasSpaceFolder"/"$AtlasSpaceT1wImage" -w "$AtlasTransform" -o "$AtlasSpaceFolder"/"$T1wImageBrainMask".nii.gz
+
+#Optionally use PreFreeSurfer brain mask instead
+if [ "$MaskStyle" = "preFS" ] ; then
+	mv "$T1wFolder"/"$T1wImageBrainMask"_1mm.nii.gz "$T1wFolder"/"$T1wImageBrainMask"_1mm_orig.nii.gz
+	mv "$T1wFolder"/"$T1wImageBrainMask".nii.gz "$T1wFolder"/"$T1wImageBrainMask"_orig.nii.gz
+	mv "$AtlasSpaceFolder"/"$T1wImageBrainMask".nii.gz "$AtlasSpaceFolder"/"$T1wImageBrainMask"_orig.nii.gz
+	fslmaths "$T1wFolder"/T1w_acpc_dc_brain -bin "$T1wFolder"/"$T1wImageBrainMask" # use T1w_acpc_dc_brain in case T1w_acpc_dc_restore_brain was alrady remasked with default brainmask_fs
+	fslmaths "$T1wFolder"/T1w_acpc_dc_restore_brain_1mm -bin "$T1wFolder"/"$T1wImageBrainMask"_1mm # no apparent remasking issue for T1w_acpc_dc_restore_brain_1mm
+	applywarp --rel --interp=nn -i "$T1wFolder"/"$T1wImageBrainMask" -r "$AtlasSpaceFolder"/"$AtlasSpaceT1wImage" -w "$AtlasTransform" -o "$AtlasSpaceFolder"/"$T1wImageBrainMask"
+fi
 
 #Add volume files to spec files
 ${CARET7DIR}/wb_command -add-to-spec-file "$T1wFolder"/"$NativeFolder"/"$Subject".native.wb.spec INVALID "$T1wFolder"/"$T2wImage".nii.gz

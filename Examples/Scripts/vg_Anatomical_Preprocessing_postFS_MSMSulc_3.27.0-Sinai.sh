@@ -31,7 +31,7 @@ if [ $# -eq 0 ] ; then
 	echo -e "\nUSAGE: This script will run the HCP PostFreeSurfer anatomical preprocessing pipeline.\n"
 	echo -e "   Protips:" 
 	echo -e "   1) Having both .nii and .nii.gz versions of input files present in same folder will crash this script. Move or rename .nii versions before running."
-	echo -e "   2) Standard usage: vg_Anatomical_Preprocessing_postFS_MSMSulc_3.27.0-Sinai.sh --ID=<Subject ID> \n"
+	echo -e "   2) Standard usage: vg_Anatomical_Preprocessing_postFS_MSMSulc_3.27.0-Sinai.sh --ID=<Subject ID> [ --maskstyle=preFS ] [ --Test=yes ]\n"
 fi
 
 # function for parsing options
@@ -51,10 +51,15 @@ if [ $# -eq 0 ] ; then
 	echo -e 'Enter subject number (e.g. P001)' ; read ID
 else
 	ID=`getopt1 "--ID" $@`
+	maskstyle=`getopt1 "--maskstyle" $@`
+	Test=`getopt1 "--Test" $@`
 fi
 
-home="/sc/orga/projects/adolpvs/Subjects"
-#home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
+if [ "$Test" = "yes" ] ; then 
+	home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
+else
+	home="/sc/orga/projects/adolpvs/Subjects"
+fi
 echo -e "`date` - home directory: $home"
 cd ${home}/${ID}
 if [ "$?" != "0" ] ; then
@@ -74,7 +79,8 @@ ${HCPPIPEDIR}/PostFreeSurfer/PostFreeSurferPipeline.sh \
 	--subcortgraylabels=${HCPPIPEDIR_Config}/FreeSurferSubcorticalLabelTableLut.txt \
 	--freesurferlabels=${HCPPIPEDIR_Config}/FreeSurferAllLut.txt \
 	--regname=MSMSulc \
-	--refmyelinmaps=${HCPPIPEDIR_Templates}/standard_mesh_atlases/Conte69.MyelinMap_BC.164k_fs_LR.dscalar.nii
+	--refmyelinmaps=${HCPPIPEDIR_Templates}/standard_mesh_atlases/Conte69.MyelinMap_BC.164k_fs_LR.dscalar.nii \
+	--maskstyle=$maskstyle # use 'preFS' to replace brainmask_fs with PreFreeSurfer brainmask
 
 if [ "$?" = "0" ] ; then
 	echo -e "\n\n`date` - All done! Check the main output files in the subject directory, yo:"
