@@ -30,7 +30,7 @@ if [ $# -eq 0 ] ; then
 	echo -e "\nUSAGE: This script will run the HCP PreFreeSurfer and FreeSurfer anatomical preprocessing pipelines.\n"
 	echo -e "   Protips:" 
 	echo -e "   1) Having both .nii and .nii.gz versions of input files present in same folder will crash this script. Move or rename .nii versions before running."
-	echo -e "   2) Standard usage: vg_Anatomical_Preprocessing_preFS_FS_3.22.0-beta.2-Sinai.sh --ID=<Subject ID> --T1=<T1w Folder No.> [ --T1b=<optional second T1w Folder No.> ] --T2=<T2w Folder No.> [ --LR=<LR Fieldmap Folder No.> --RL=<RL Fieldmap Folder No> ] or [ --AP=<AP Fieldmap Folder No.> --PA=<PA Fieldmap Folder No.> ]\n"
+	echo -e "   2) Standard usage: vg_Anatomical_Preprocessing_preFS_FS_3.22.0-beta.2-Sinai.sh --ID=<Subject ID> --T1=<T1w Folder No.> [ --T1b=<optional second T1w Folder No.> ] --T2=<T2w Folder No.> [ --LR=<LR Fieldmap Folder No.> --RL=<RL Fieldmap Folder No> ] or [ --AP=<AP Fieldmap Folder No.> --PA=<PA Fieldmap Folder No.> ] [ --preFS=skip ] [ --Test=yes ] \n"
 fi
 
 # function for parsing options
@@ -65,10 +65,14 @@ else
 	AP=`getopt1 "--AP" $@`
 	PA=`getopt1 "--PA" $@`
 	preFS=`getopt1 "--preFS" $@`
+	Test=`getopt1 "--Test" $@`
 fi
 
-home="/sc/orga/projects/adolpvs/Subjects"
-#home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
+if [ "$Test" = "yes" ] ; then 
+	home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
+else
+	home="/sc/orga/projects/adolpvs/Subjects"
+fi
 echo -e "`date` - home directory: $home"
 cd ${home}/${ID}
 if [ "$?" != "0" ] ; then
@@ -100,22 +104,30 @@ else
 	exit 46
 fi
 # Parse other inputs
-T1path=$(dirname ${T1}_*/oT*.nii.gz) #e.g. oT1wMPRBICv1.nii.gz. can also use coT*.nii.gz
-T1file=$(basename ${T1}_*/oT*.nii.gz) # e.g. oT1wMPRBICv1.nii.gz, can also use coT*.nii.gz
+T1path=$(dirname ${T1}_*/o*.nii.gz) #e.g. oT1wMPRBICv1.nii.gz. can also use coT*.nii.gz
+T1file=$(basename ${T1}_*/o*.nii.gz) # e.g. oT1wMPRBICv1.nii.gz, can also use coT*.nii.gz
 T1run=${T1path}/${T1file}
 if [ -n "$T1b" ] ; then
-	T1bpath=$(dirname ${T1b}_*/oT*.nii.gz) #e.g. oT1wMPRBICv1.nii.gz. can also use coT*.nii.gz
-	T1bfile=$(basename ${T1b}_*/oT*.nii.gz) # e.g. oT1wMPRBICv1.nii.gz, can also use coT*.nii.gz
+	T1bpath=$(dirname ${T1b}_*/o*.nii.gz) #e.g. oT1wMPRBICv1.nii.gz. can also use coT*.nii.gz
+	T1bfile=$(basename ${T1b}_*/o*.nii.gz) # e.g. oT1wMPRBICv1.nii.gz, can also use coT*.nii.gz
 	T1brun=${T1bpath}/${T1bfile}
 	T1run="${T1run}@${T1brun}"
 fi
-T2path=$(dirname ${T2}_*/oT*.nii.gz) #e.g. oT2wSPCBICv1.nii.gz
-T2file=$(basename ${T2}_*/oT*.nii.gz) #e.g. oT2wSPCBICv1.nii.gz
+T2path=$(dirname ${T2}_*/o*.nii.gz) #e.g. oT2wSPCBICv1.nii.gz
+T2file=$(basename ${T2}_*/o*.nii.gz) #e.g. oT2wSPCBICv1.nii.gz
 T2run=${T2path}/${T2file}
 
 # option to skip PreFreeSurfer if re-running due to FreeSurfer crash
 if [ "$preFS" = "skip" ] ; then 
-	echo -e "\n\n`date` - Skipping PreFreeSurfer pipeline.\n\n"
+	echo -e "\n\n`date` - Skipping PreFreeSurfer pipeline."
+	# PostFreeSurver overwrites TXw*restore_brain.nii.gz files using brainmask_fs which can cause skullstripping issues so reset to original masking
+	echo -e "\n\n`date` - Reapplying original PreFreeSurfer brainmasks to *restore_brain.nii.gz files."
+	fslmaths $home/$ID/T1w/T1w_acpc_dc_brain -bin -mul $home/$ID/T1w/T1w_acpc_dc_restore $home/$ID/T1w/T1w_acpc_dc_restore_brain
+	fslmaths $home/$ID/T1w/T1w_acpc_dc_brain -bin -mul $home/$ID/T1w/T2w_acpc_dc_restore $home/$ID/T1w/T2w_acpc_dc_restore_brain
+	applywarp --rel --interp=nn -i $home/$ID/T1w/T1w_acpc_dc_restore_brain -r $HCPPIPEDIR_Templates/MNI152_T1_0.9mm -w $home/$ID/MNINonLinear/xfms/acpc_dc2standard -o $home/$ID/MNINonLinear/T1w_restore_brain
+	fslmaths $home/$ID/MNINonLinear/T1w_restore -mas $home/$ID/MNINonLinear/T1w_restore_brain $home/$ID/MNINonLinear/T1w_restore_brain
+	applywarp --rel --interp=nn -i $home/$ID/T1w/T2w_acpc_dc_restore_brain -r $HCPPIPEDIR_Templates/MNI152_T1_0.9mm -w $home/$ID/MNINonLinear/xfms/acpc_dc2standard -o $home/$ID/MNINonLinear/T2w_restore_brain
+	fslmaths $home/$ID/MNINonLinear/T2w_restore -mas $home/$ID/MNINonLinear/T2w_restore_brain $home/$ID/MNINonLinear/T2w_restore_brain
 else
 	echo -e "\n\n`date` - Running PreFreeSurfer pipeline.\n\n"
 	${HCPPIPEDIR}/PreFreeSurfer/PreFreeSurferPipeline.sh \
@@ -169,7 +181,8 @@ ${HCPPIPEDIR}/FreeSurfer/FreeSurferPipeline.sh \
 #	--seed=true # optionally turn on random seed generation for recon-all, I believe this can help if FS segmentation is performing poorly
 if [ "$?" = "0" ] ; then
 	echo -e "\n\n`date` - FreeSurfer pipeline complete! Check results before running PostFreeSurfer pipeline."
-	echo -e "     fslview $home/$ID/T1w/T1w_acpc_dc_restore_brain $home/$ID/MNINonLinear/T1w_restore_brain"
+	echo -e "     fslview $home/$ID/T1w/T1w_acpc_dc_restore $home/$ID/T1w/T1w_acpc_dc_restore_brain -l Red $home/$ID/T1w/wmparc -l Green"
+	echo -e "     fslview $home/$ID/MNINonLinear/T1w_restore $home/$ID/MNINonLinear/T1w_restore_brain -l Red $home/$ID/MNINonLinear/wmparc -l Green"
 else
 	echo -e "\n\n`date` - ERROR: FreeSurfer pipeline did not complete normally; check files and re-run."
 	exit 48
