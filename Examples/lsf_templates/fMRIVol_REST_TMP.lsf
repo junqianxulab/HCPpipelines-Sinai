@@ -1,0 +1,45 @@
+#!/bin/bash
+#BSUB -J fMRIVol_VAR_SUBrest
+#BSUB -P acc_adolpvs
+#BSUB -q premium
+#BSUB -n 1
+#BSUB -R "rusage[mem=16000]"
+#BSUB -R "span[hosts=1]"
+#BSUB -W 12:00
+#BSUB -o /sc/orga/projects/adolpvs/PreProcPipeline/logs/fMRIVol_3.22.0-beta.2-Sinai/fMRIVol_REST_VAR_SUB.log
+
+home="/sc/orga/projects/adolpvs/PreProcPipeline"
+scripts="$home/Scripts/HCPpipelines-3.22.0-beta.2-Sinai/Examples/Scripts"
+
+# housekeeping so most recent log is obvious
+logfile="$home/logs/fMRIVol_3.22.0-beta.2-Sinai/fMRIVol_REST_VAR_SUB.log"
+if [[ -e "$logfile" ]] ; then
+	mkdir -p $home/logs/fMRIVol_3.22.0-beta.2-Sinai/loghist
+	cat $logfile >> $home/logs/fMRIVol_3.22.0-beta.2-Sinai/loghist/fMRIVol_REST_VAR_SUB.loghist
+	rm $logfile
+fi
+
+# set up and log environment
+module purge
+. $scripts/SetUpGlobalDefaults.sh
+. $scripts/SetUpMinervaModules.sh
+. $scripts/SetUpHCPPipeline.sh
+sh $scripts/env_report.sh 2>&1
+
+# run script
+#   mandatory flags:
+#     --ID=[subject ID]
+#     --BOLD=[fMRI folder number]
+#     --SB=[SBRef folder number]
+#     --AP=[AP fieldmap folder number] # use if encoding direction = AP/PA
+#     --PA=[PA fieldmap folder number] # use if encoding direction = AP/PA
+#       or
+#     --LR=[LR fieldmap folder number] # use if encoding direction = LR/RL
+#     --RL=[RL fieldmap folder number] # use if encoding direction = LR/RL
+#     --Direction=[phase encoding direction, i.e. AP, PA, LR, or RL]
+#     --Name=[name of run, e.g. REST]
+#   optional flags:
+#     --TagMM=yes # tag large intermediate motion matrix files for deletion, recommended
+#     --TarWD=yes # tarball working directory and tag original for deletion, recommended
+#     --Test=yes # use for development, changes home directory to /sc/orga/projects/xuj09a/gabbay_storage/Subjects/test
+sh $scripts/vg_BOLD_Preprocessing_fMRIVolume_3.22.0-beta.2-Sinai.sh --ID=VAR_SUB --BOLD=10 --SB=9 --AP=7 --PA=8 --Direction=AP --Name=REST --TagMM=yes --TarWD=yes 2>&1
