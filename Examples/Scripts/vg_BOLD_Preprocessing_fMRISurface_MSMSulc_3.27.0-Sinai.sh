@@ -33,7 +33,7 @@ if [ $# -eq 0 ] ; then
 	echo -e "   1) This script relies on outputs from the HCP anatomical and fMRIVolume functional preprocessing pipelines, so run those first."
 	echo -e "   2) If processing several BOLD runs locally, better to do so in serial than in parallel (slows things down substantially)."
 	echo -e "   3) Having both .nii and .nii.gz versions of input files present in same folder will crash this script. Move or rename .nii versions before running."
-	echo -e "   4) Standard input usage is:    vg_BOLD_Preprocessing_fMRISurface_MSMSulc_3.27.0-Sinai.sh --ID=[SubjectNumber] --Name=[NameOfBOLDRun]\n"
+	echo -e "   4) Standard input usage is:    vg_BOLD_Preprocessing_fMRISurface_MSMSulc_3.27.0-Sinai.sh --ID=[SubjectNumber] --Name=[NameOfBOLDRun] < --Test=yes > \n"
 fi
 
 # function for parsing options
@@ -55,10 +55,14 @@ if [ $# -eq 0 ] ; then
 else
 	ID=`getopt1 "--ID" $@`
 	Name=`getopt1 "--Name" $@`
+	Test=`getopt1 "--Test" $@`
 fi	
 
-home="/sc/orga/projects/adolpvs/Subjects"
-#home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
+if [ "$Test" = "yes" ] ; then 
+	home="/sc/orga/projects/xuj09a/gabbay_storage/Subjects/test"
+else
+	home="/sc/orga/projects/adolpvs/Subjects"
+fi
 echo -e "`date` - home directory: $home"
 cd ${home}/${ID}
 if [ "$?" != "0" ] ; then
