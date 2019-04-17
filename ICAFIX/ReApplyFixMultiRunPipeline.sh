@@ -491,15 +491,13 @@ main()
 		# Create necessary strings for merging across runs
 		# N.B. Some of these files don't exist yet, and are about to get created
 		NIFTIvolMergeSTRING+="${fmriNoExt}_demean "
-		#NIFTIvolhpVNMergeSTRING+="${fmriNoExt}_hp${hp}_vnts "  #These are the individual run, VN'ed *time series* # modified 2019-03-02
 		NIFTIvolhpVNMergeSTRING+="${fmriNoExt}_hp${hp}_vn "  #These are the individual run, VN'ed *time series*
 		SBRefVolSTRING+="${fmriNoExt}_SBRef "
 		MeanVolSTRING+="${fmriNoExt}_mean "
-		VNVolSTRING+="${fmriNoExt}_hp${hp}_vn "  #These are the individual run, VN'ed NIFTI *maps* (created by functionhighpassandvariancenormalize)
+		VNVolSTRING+="${fmriNoExt}_vn "  #These are the individual run, VN'ed NIFTI *maps* (created by functionhighpassandvariancenormalize)
 		CIFTIMergeSTRING+="-cifti ${fmriNoExt}_Atlas${RegString}_demean.dtseries.nii "
 		CIFTIhpVNMergeSTRING+="-cifti ${fmriNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii "
 		MeanCIFTISTRING+="-cifti ${fmriNoExt}_Atlas${RegString}_mean.dscalar.nii "
-		#VNCIFTISTRING+="-cifti ${fmriNoExt}_Atlas${RegString}_hp${hp}_vn.dscalar.nii "  #These are the individual run, VN'ed CIFTI *maps* (created by functionhighpassandvariancenormalize) # modified: 2019-03-02.
 		VNCIFTISTRING+="-cifti ${fmriNoExt}_Atlas${RegString}_vn.dscalar.nii "  #These are the individual run, VN'ed CIFTI *maps* (created by functionhighpassandvariancenormalize)
 
 		cd `dirname $fmri`
@@ -543,8 +541,8 @@ main()
         if [[ ! -f "${fmriNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii" || \
               ! -f "${fmriNoExt}_Atlas${RegString}_vn.dscalar.nii" || \
               ( $DoVol == "1" && \
-			    ( `$FSLDIR/bin/imtest "${fmriNoExt}_hp${hp}_vnts"` != 1 || \
-                  `$FSLDIR/bin/imtest "${fmriNoExt}_hp${hp}_vn"` != 1 )) ]]
+			    ( `$FSLDIR/bin/imtest "${fmriNoExt}_hp${hp}_vn"` != 1 || \
+                  `$FSLDIR/bin/imtest "${fmriNoExt}_vn"` != 1 )) ]]
         then
 
 			log_Msg "processing FMRI file $fmri with highpass $hp"
@@ -633,20 +631,18 @@ M_PROG
 		if [ `$FSLDIR/bin/imtest ${ConcatNameNoExt}` != 1 ]; then
 		    # Merge volumes from the individual runs
 			fslmerge -tr ${ConcatNameNoExt}_demean ${NIFTIvolMergeSTRING} $tr
-			#fslmerge -tr ${ConcatNameNoExt}_hp${hp}_vnts ${NIFTIvolhpVNMergeSTRING} $tr
-			fslmerge -tr ${ConcatNameNoExt}_hp${hp}_vn ${NIFTIvolhpVNMergeSTRING} $tr # modified 2019-03-02
+			fslmerge -tr ${ConcatNameNoExt}_hp${hp}_vn ${NIFTIvolhpVNMergeSTRING} $tr
 			fslmerge -t  ${ConcatNameNoExt}_SBRef ${SBRefVolSTRING}
 			fslmerge -t  ${ConcatNameNoExt}_mean ${MeanVolSTRING}
-			fslmerge -t  ${ConcatNameNoExt}_hp${hp}_vn ${VNVolSTRING}
+			fslmerge -t  ${ConcatNameNoExt}_vn ${VNVolSTRING}
 		    # Average across runs
 			fslmaths ${ConcatNameNoExt}_SBRef -Tmean ${ConcatNameNoExt}_SBRef
 			fslmaths ${ConcatNameNoExt}_mean -Tmean ${ConcatNameNoExt}_mean  # "Grand" mean across runs
 			fslmaths ${ConcatNameNoExt}_demean -add ${ConcatNameNoExt}_mean ${ConcatNameNoExt}
 		      # Preceding line adds back in the "grand" mean
 			  # Resulting file not used below, but want this concatenated version (without HP or VN) to exist
-			fslmaths ${ConcatNameNoExt}_hp${hp}_vn -Tmean ${ConcatNameNoExt}_hp${hp}_vn  # Mean VN map across the individual runs
-			#fslmaths ${ConcatNameNoExt}_hp${hp}_vnts -mul ${ConcatNameNoExt}_hp${hp}_vn ${ConcatNameNoExt}_hp${hp} # modified 2019-03-02 
-			fslmaths ${ConcatNameNoExt}_hp${hp}_vn -mul ${ConcatNameNoExt}_hp${hp}_vn ${ConcatNameNoExt}_hp${hp} 
+			fslmaths ${ConcatNameNoExt}_vn -Tmean ${ConcatNameNoExt}_vn  # Mean VN map across the individual runs
+			fslmaths ${ConcatNameNoExt}_hp${hp}_vn -mul ${ConcatNameNoExt}_hp${hp}_vn ${ConcatNameNoExt}_hp${hp}
               # Preceding line restores the mean VN map
 			fslmaths ${ConcatNameNoExt}_SBRef -bin ${ConcatNameNoExt}_brain_mask
               # Preceding line creates mask to be used in melodic for suppressing memory error - Takuya Hayashi
@@ -661,9 +657,7 @@ M_PROG
         ${FSL_FIX_WBC} -cifti-average ${ConcatNameNoExt}_Atlas${RegString}_mean.dscalar.nii ${MeanCIFTISTRING}
         ${FSL_FIX_WBC} -cifti-math "TCS + MEAN" ${ConcatNameNoExt}_Atlas${RegString}.dtseries.nii -var TCS ${ConcatNameNoExt}_Atlas${RegString}_demean.dtseries.nii -var MEAN ${ConcatNameNoExt}_Atlas${RegString}_mean.dscalar.nii -select 1 1 -repeat
         ${FSL_FIX_WBC} -cifti-merge ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii ${CIFTIhpVNMergeSTRING}
-        #${FSL_FIX_WBC} -cifti-average ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}_vn.dscalar.nii ${VNCIFTISTRING} # modified 2019-03-02
         ${FSL_FIX_WBC} -cifti-average ${ConcatNameNoExt}_Atlas${RegString}_vn.dscalar.nii ${VNCIFTISTRING}
-        #${FSL_FIX_WBC} -cifti-math "TCS * VN" ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}.dtseries.nii -var TCS ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii -var VN ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}_vn.dscalar.nii -select 1 1 -repeat # modified 2019-03-02
         ${FSL_FIX_WBC} -cifti-math "TCS * VN" ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}.dtseries.nii -var TCS ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii -var VN ${ConcatNameNoExt}_Atlas${RegString}_vn.dscalar.nii -select 1 1 -repeat
     else
 		log_Warn "${ConcatNameNoExt}_Atlas${RegString}_hp${hp}.dtseries.nii already exists. Using existing version"
@@ -672,9 +666,7 @@ M_PROG
 	# At this point the concatenated VN'ed time series (both volume and CIFTI, following the "1st pass" VN) can be deleted
 	# MPH: Conditional on DoVol not needed in the following, since at worst, we'll try removing a file that doesn't exist
 	log_Msg "Removing the concatenated VN'ed time series"
-	#$FSLDIR/bin/imrm ${ConcatNameNoExt}_hp${hp}_vnts # modified 2019-03-02
-	$FSLDIR/bin/imrm ${ConcatNameNoExt}_hp${hp}_vn 
-	/bin/rm -f ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii
+	/bin/rm -f ${ConcatNameNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii 
 
 	# Nor do we need the concatenated demeaned time series (either volume or CIFTI)
 	log_Msg "Removing the concatenated demeaned time series"
@@ -691,8 +683,6 @@ M_PROG
 		log_Msg "Removing the individual run VN'ed and demeaned time series for ${fmri}"
 
 		fmriNoExt=$($FSLDIR/bin/remove_ext $fmri)  # $fmriNoExt still includes leading directory components
-		#$FSLDIR/bin/imrm ${fmriNoExt}_hp${hp}_vnts # modified 2019-03-02
-		$FSLDIR/bin/imrm ${fmriNoExt}_hp${hp}_vn
 		$FSLDIR/bin/imrm ${fmriNoExt}_demean
 		/bin/rm -f ${fmriNoExt}_Atlas${RegString}_hp${hp}_vn.dtseries.nii
 		/bin/rm -f ${fmriNoExt}_Atlas${RegString}_demean.dtseries.nii
@@ -891,7 +881,6 @@ M_PROG
 	
 	    cifti_out=${fmriNoExt}_Atlas${RegString}_hp${hp}_clean.dtseries.nii
 	    ${FSL_FIX_WBC} -cifti-merge ${cifti_out} -cifti ${ConcatFolder}/${concatfmri}_Atlas${RegString}_hp${hp}_clean.dtseries.nii -column ${Start} -up-to ${Stop}
-	    #${FSL_FIX_WBC} -cifti-math "((TCS / VNA) * VN) + Mean" ${cifti_out} -var TCS ${cifti_out} -var VNA ${ConcatFolder}/${concatfmri}_Atlas${RegString}_hp${hp}_vn.dscalar.nii -select 1 1 -repeat -var VN ${fmriNoExt}_Atlas${RegString}_hp${hp}_vn.dscalar.nii -select 1 1 -repeat -var Mean ${fmriNoExt}_Atlas${RegString}_mean.dscalar.nii -select 1 1 -repeat # modified 2019-03-02
 	    ${FSL_FIX_WBC} -cifti-math "((TCS / VNA) * VN) + Mean" ${cifti_out} -var TCS ${cifti_out} -var VNA ${ConcatFolder}/${concatfmri}_Atlas${RegString}_vn.dscalar.nii -select 1 1 -repeat -var VN ${fmriNoExt}_Atlas${RegString}_vn.dscalar.nii -select 1 1 -repeat -var Mean ${fmriNoExt}_Atlas${RegString}_mean.dscalar.nii -select 1 1 -repeat
 
 	    readme_for_cifti_out=${cifti_out%.dtseries.nii}.README.txt
@@ -911,7 +900,9 @@ M_PROG
 		if (( DoVol )); then
 			volume_out=${fmriNoExt}_hp${hp}_clean.nii.gz
 	        ${FSL_FIX_WBC} -volume-merge ${volume_out} -volume ${ConcatFolder}/${concatfmrihp}_clean.nii.gz -subvolume ${Start} -up-to ${Stop}
-	        fslmaths ${volume_out} -div ${ConcatFolder}/${concatfmrihp}_vn -mul ${fmriNoExt}_hp${hp}_vn -add ${fmriNoExt}_mean ${volume_out}
+		    fslmaths ${volume_out} -div ${ConcatFolder}/${concatfmri}_vn -mul ${fmriNoExt}_vn -add ${fmriNoExt}_mean ${volume_out} # back 2019-04-11
+
+
         fi
 	    Start=`echo "${Start} + ${NumTPS}" | bc -l`
 	done
